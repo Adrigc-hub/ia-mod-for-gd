@@ -3,7 +3,6 @@
 
 using namespace geode::prelude;
 
-// Definimos nuestra propia capa flotante (Popup)
 class IAMenuPopup : public FLAlertLayer {
 protected:
     CCTextInputNode* m_inputNode;
@@ -38,7 +37,7 @@ protected:
         m_inputNode->setAllowedChars("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ");
         m_mainLayer->addChild(m_inputNode);
 
-        // Menú para los botones (Cerrar y Generar)
+        // Menú para los botones
         auto menu = CCMenu::create();
         menu->setPosition({ 0, 0 });
         m_mainLayer->addChild(menu);
@@ -59,7 +58,6 @@ protected:
         generateBtn->setPosition(winSize.width / 2, winSize.height / 2 - 70.f);
         menu->addChild(generateBtn);
 
-        // Habilitar clics en esta capa
         this->setTouchEnabled(true);
         this->setKeypadEnabled(true);
 
@@ -70,6 +68,7 @@ protected:
         this->removeFromParentAndCleanup(true);
     }
 
+    // AQUÍ ES DONDE SE APLICA EL CÓDIGO PARA CREAR OBJETOS
     void onGenerate(CCObject* sender) {
         std::string prompt = m_inputNode->getString();
         
@@ -78,10 +77,30 @@ protected:
             return;
         }
 
-        // Aquí se conectaría la lógica o la API de la IA.
-        // Por ahora, muestra un aviso de que recibió la orden.
-        std::string mensaje = "La IA está procesando: \"" + prompt + "\"\n(Aquí se ejecutará la creación de objetos).";
-        FLAlertLayer::create("IA Procesando", mensaje.c_str(), "Genial")->show();
+        // 1. Conseguir la capa del editor que está abierta actualmente en el juego
+        auto editorLayer = LevelEditorLayer::get();
+
+        if (editorLayer) {
+            // 2. Obtener el centro de la pantalla actual del editor para saber dónde poner el objeto
+            auto winSize = CCDirector::sharedDirector()->getWinSize();
+            CCPoint posicionCentro = editorLayer->m_objectLayer->convertToNodeSpace(winSize / 2);
+
+            // 3. Crear el objeto real usando el ID del juego (ID 8 es la espina/spike común)
+            // Parámetros: createObject(ID_DEL_OBJETO, POSICIÓN_CCPOINT, HACER_UNDOABLE)
+            auto nuevoObjeto = editorLayer->createObject(8, posicionCentro, true);
+
+            if (nuevoObjeto) {
+                // 4. Añadirlo visualmente al nivel y registrarlo en el historial para poder borrarlo con "Undo"
+                editorLayer->m_editorUI->m_selectedObjects->addObject(nuevoObjeto);
+                
+                // Cerrar la interfaz de la IA para ver el objeto creado
+                this->onClose(nullptr);
+                return;
+            }
+        }
+
+        // Si por alguna razón falla o no encuentra el editor
+        FLAlertLayer::create("Error", "No se pudo crear el objeto en el editor.", "OK")->show();
     }
 
 public:
