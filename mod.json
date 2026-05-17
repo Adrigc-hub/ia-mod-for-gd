@@ -1,0 +1,15 @@
+{
+    "geode": "3.0.0-beta.1",
+    "id": "tuusuario.ia_editor_helper",
+    "version": "1.0.0",
+    "name": "IA Editor Helper",
+    "developer": "TuNombre",
+    "description": "Añade un asistente de IA al editor de Geometry Dash.",
+    "dependencies": [
+        {
+            "id": "geode.loader",
+            "version": ">=3.0.0-beta.1",
+            "importance": "required"
+        }
+    ]
+}
